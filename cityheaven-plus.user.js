@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        cityheaven-plus
-// @version     v0.0.1
+// @version     0.0.2
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
