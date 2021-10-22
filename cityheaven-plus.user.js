@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        cityheaven-plus
-// @version     0.0.2
+// @version     0.0.3
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -13,10 +13,18 @@
         return
     }
 
-    // 「マイヘブン」を「マイガール/出勤情報」へのリンクにする
+    // 便利リンクを作る
     const myh = document.getElementsByClassName('myh')[0]
     if (!myh) {
         return
     }
-    myh.dataset.forwardHref = myh.dataset.forwardHref.replace('ABMypageHome', 'ABMyAlbumShukkin')
+    const ul = myh.parentNode.parentNode
+    const li = document.createElement('li')
+    ul.insertBefore(li, null)
+    li.innerHTML = `
+        <a href="/mypage/comeonlist/?spmode=pc">キテネ</a>
+        <a href="/tt/community/ABFavoriteGirlList/?spmode=pc">マイガ</a>
+        <a href="/tt/community/ABMyAlbumShukkin/?spmode=pc">出勤</a>
+        <a href="/tt/community/SBMyAlbumShukkin/?pcmode=sp">週間</a>
+    `
 })()
