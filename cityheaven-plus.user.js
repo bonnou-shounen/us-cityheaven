@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        cityheaven-plus
-// @version     0.0.4
+// @version     0.0.5
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -8,8 +8,8 @@
     'use strict';
 
     // オフィシャルフラグを削除する
-    if (location.search.match(/\bof=y\b/)) {
-        location.search = location.search.replace(/\bof=y\b/, '')
+    if (location.search.match(/\bof=[^&]*\b/)) {
+        location.search = location.search.replace(/\bof=[^&]*\b/, '')
         return
     }
 
