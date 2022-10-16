@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        cityheaven-plus
-// @version     0.0.6
+// @version     0.0.7
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -63,26 +63,23 @@
         })
     }
 
-    if (location.pathname.match(/attend/)) {
-        show_fav({
+    const configs = [
+        {
+            match: '/attend/',
             list_selector: 'div.sugunavi_wrapper a',
             get_ids: a => { return { gid: a.href.match(/girlid-(\d+)/)[1] } },
             show_selector: 'p.year_font_size',
             modify_html: (html, count) => { return `${html} [${count}]` }
-        })
-    }
-
-    if (location.pathname.match(/girllist/)) {
-        show_fav({
+        },
+        {
+            match: '/girllist/',
             list_selector: 'div.girllistimg a',
             get_ids: a => { return { gid: a.href.match(/girlid-(\d+)/)[1] } },
             show_selector: 'div.girllisttext',
             modify_html: (html, count) => { return html.replace('<br>', ` [${count}]<br>`) }
-        })
-    }
-
-    if (location.pathname.match(/ABMyAlbumShukkin/)) {
-        show_fav({
+        },
+        {
+            match: '/ABMyAlbumShukkin/',
             list_selector: 'div.recommend-block',
             get_ids: div => {
                 const m = div.getElementsByClassName('recommend-block-box')[0]
@@ -94,6 +91,36 @@
             modify_html: (html, count) => { return `
                 ${html}<span style="font-size: 13px; font-weight: normal;">[${count}]</span>
             `}
+        },
+        {
+            match: '/girlid-',
+            list_selector: 'span.title_font',
+            get_ids: span => { return { gid: location.pathname.match(/girlid-(\d+)/)[1] } },
+            show_selector: 'td',
+            modify_html: (html, count) => { return html.replace('〕', `〕[${count}]`) }
+        }
+    ]
+
+    for (const c of configs) {
+        if (!location.pathname.match(c.match)) {
+            continue
+        }
+
+        let common_sid = null
+        document.querySelectorAll(c.list_selector).forEach(elm => {
+            const ids = c.get_ids(elm)
+            ids.sid ||= common_sid ||= function() {
+                for (const s of document.getElementsByTagName('script')) {
+                    const m = s.innerText.match(/'shop_id':'(\d+)'/)
+                    if (m) { return m[1] }
+                }
+            }()
+            fetch(`https://www.cityheaven.net/api/myheaven/v1/getgirlfavcnt/?girl_id=${ids.gid}&commu_id=${ids.sid}`)
+                .then(res => res.json()).then(fav => {
+                    const show_elm = elm.querySelectorAll(c.show_selector)[0]
+                    show_elm.innerHTML = c.modify_html(show_elm.innerHTML, fav.cnt)
+                })
         })
+        break
     }
 })()
