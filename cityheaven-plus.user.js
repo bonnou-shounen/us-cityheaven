@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name        cityheaven-plus
-// @version     0.0.7
+// @version     0.0.8
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
 (function() {
-    'use strict';
+    'use strict'
 
     // オフィシャルフラグを削除する
     if (location.search.match(/\bof=[^&]*\b/)) {
@@ -41,28 +41,6 @@
     }
 
     // いろいろな画面でお気に入り数を表示する
-    const show_fav = (c) => {
-        let common_sid = undefined
-
-        document.querySelectorAll(c.list_selector).forEach(elm => {
-            const ids = c.get_ids(elm)
-            ids.sid ||= common_sid ||= function() {
-                for (const s of document.getElementsByTagName('script')) {
-                    const m = s.innerText.match(/'shop_id':'(\d+)'/)
-                    if (m) {
-                        common_sid = m[1]
-                        return common_sid
-                    }
-                }
-            }()
-            fetch(`https://www.cityheaven.net/api/myheaven/v1/getgirlfavcnt/?girl_id=${ids.gid}&commu_id=${ids.sid}`)
-                .then(res => res.json()).then(fav => {
-                    const show_elm = elm.querySelectorAll(c.show_selector)[0]
-                    show_elm.innerHTML = c.modify_html(show_elm.innerHTML, fav.cnt)
-                })
-        })
-    }
-
     const configs = [
         {
             match: '/attend/',
@@ -123,4 +101,4 @@
         })
         break
     }
-})()
+})();
