@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name        cityheaven-plus
-// @version     0.0.8
+// @description add convinient elements
+// @version     0.0.9
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -14,56 +15,58 @@
     }
 
     // 便利リンクを作る
-    const myh = document.getElementsByClassName('myh')[0]
-    if (myh) {
-        const ul = myh.parentNode.parentNode
+    const a_myh = document.querySelector('a.myh')
+    if (a_myh) {
         const li = document.createElement('li')
-        ul.insertBefore(li, null)
         li.innerHTML = `
             <a href="/tt/community/ABFavoriteGirlList/?spmode=pc">マイガ</a>
             <a href="/tt/community/ABMyAlbumShukkin/?spmode=pc">出勤</a>
             <a href="/tt/community/SBMyAlbumShukkin/?pcmode=sp" target="_blank">週間</a>
             <a href="/mypage/comeonlist/?spmode=pc" target="_blank">キテネ</a>
         `
+        a_myh.parentNode.parentNode.insertBefore(li, null)
     }
 
-    const myg = document.getElementsByClassName('header-wrap-menu-item')[1]
-    if (myg) {
-        const menuDiv = myg.parentNode
+    const div_myg = document.querySelectorAll('div.header-wrap-menu-item')[1]
+    if (div_myg) {
         const div = document.createElement('div')
         div.className = 'header-wrap-menu-item'
-        menuDiv.insertBefore(div, myg.nextSibling)
         div.innerHTML = `
             <a href="/tt/community/ABMyAlbumShukkin/?spmode=pc">出勤</a>
             ・<a href="/tt/community/SBMyAlbumShukkin/?pcmode=sp" target="_blank">週間</a>
             ・<a href="/mypage/comeonlist/?spmode=pc" target="_blank">キテネ</a>
         `
+        div_myg.parentNode.insertBefore(div, div_myg.nextSibling)
     }
 
     // いろいろな画面でお気に入り数を表示する
     const configs = [
         {
-            match: '/attend/',
-            list_selector: 'div.sugunavi_wrapper a',
-            get_ids: a => { return { gid: a.href.match(/girlid-(\d+)/)[1] } },
+            path: '/attend/',
+            cast_selector: 'div.sugunavi_wrapper a',
+            get_ids: a => {
+                const m = a.href.match(/girlid-(\d+)/)
+                return [ m[1] ]
+            },
             show_selector: 'p.year_font_size',
             modify_html: (html, count) => { return `${html} [${count}]` }
         },
         {
-            match: '/girllist/',
-            list_selector: 'div.girllistimg a',
-            get_ids: a => { return { gid: a.href.match(/girlid-(\d+)/)[1] } },
+            path: '/girllist/',
+            cast_selector: 'ul.girllist li',
+            get_ids: li => {
+                const m = li.querySelector('a').href.match(/girlid-(\d+)/)
+                return [ m[1] ]
+            },
             show_selector: 'div.girllisttext',
             modify_html: (html, count) => { return html.replace('<br>', ` [${count}]<br>`) }
         },
         {
-            match: '/ABMyAlbumShukkin/',
-            list_selector: 'div.recommend-block',
+            path: '/ABMyAlbumShukkin/',
+            cast_selector: 'div.recommend-block',
             get_ids: div => {
-                const m = div.getElementsByClassName('recommend-block-box')[0]
-                    .getElementsByTagName('a')[0]
-                    .href.match(/commuid=(\d+)&girlId=(\d+)/)
-                return { sid: m[1], gid: m[2] }
+                const m = div.querySelector('div.recommend-block-box a').href.match(/commuid=(\d+)&girlId=(\d+)/)
+                return [ m[2], m[1] ]
             },
             show_selector: 'h3.recommend-block-top-name',
             modify_html: (html, count) => { return `
@@ -71,31 +74,34 @@
             `}
         },
         {
-            match: '/girlid-',
-            list_selector: 'span.title_font',
-            get_ids: span => { return { gid: location.pathname.match(/girlid-(\d+)/)[1] } },
+            path: '/girlid-',
+            cast_selector: 'span.title_font',
+            get_ids: _span => {
+                const m = location.pathname.match(/girlid-(\d+)/)
+                return [ m[1] ]
+            },
             show_selector: 'td',
             modify_html: (html, count) => { return html.replace('〕', `〕[${count}]`) }
         }
     ]
 
     for (const c of configs) {
-        if (!location.pathname.match(c.match)) {
+        if (!location.pathname.match(c.path)) {
             continue
         }
 
         let common_sid = null
-        document.querySelectorAll(c.list_selector).forEach(elm => {
-            const ids = c.get_ids(elm)
-            ids.sid ||= common_sid ||= function() {
-                for (const s of document.getElementsByTagName('script')) {
+        document.querySelectorAll(c.cast_selector).forEach(elm => {
+            let [ gid, sid ] = c.get_ids(elm)
+            sid ||= common_sid ||= function() {
+                for (const s of document.querySelectorAll('script')) {
                     const m = s.innerText.match(/'shop_id':'(\d+)'/)
                     if (m) { return m[1] }
                 }
             }()
-            fetch(`https://www.cityheaven.net/api/myheaven/v1/getgirlfavcnt/?girl_id=${ids.gid}&commu_id=${ids.sid}`)
+            fetch(`https://www.cityheaven.net/api/myheaven/v1/getgirlfavcnt/?girl_id=${gid}&commu_id=${sid}`)
                 .then(res => res.json()).then(fav => {
-                    const show_elm = elm.querySelectorAll(c.show_selector)[0]
+                    const show_elm = elm.querySelector(c.show_selector)
                     show_elm.innerHTML = c.modify_html(show_elm.innerHTML, fav.cnt)
                 })
         })
