@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        cityheaven-plus
 // @description add convinient elements
-// @version     0.0.9
+// @version     0.0.11
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -42,6 +42,16 @@
     // いろいろな画面でお気に入り数を表示する
     const configs = [
         {
+            path: '/girllist/', // /girllist/attend/ も扱う
+            cast_selector: 'ul.girllist li',
+            get_ids: li => {
+                const m = li.querySelector('a').href.match(/girlid-(\d+)/)
+                return [ m[1] ]
+            },
+            show_selector: 'div.girllisttext',
+            modify_html: (html, count) => { return html.replace('<br>', ` [${count}]<br>`) }
+        },
+        {
             path: '/attend/',
             cast_selector: 'div.sugunavi_wrapper a',
             get_ids: a => {
@@ -50,16 +60,6 @@
             },
             show_selector: 'p.year_font_size',
             modify_html: (html, count) => { return `${html} [${count}]` }
-        },
-        {
-            path: '/girllist/',
-            cast_selector: 'ul.girllist li',
-            get_ids: li => {
-                const m = li.querySelector('a').href.match(/girlid-(\d+)/)
-                return [ m[1] ]
-            },
-            show_selector: 'div.girllisttext',
-            modify_html: (html, count) => { return html.replace('<br>', ` [${count}]<br>`) }
         },
         {
             path: '/ABMyAlbumShukkin/',
@@ -91,7 +91,7 @@
         }
 
         let common_sid = null
-        document.querySelectorAll(c.cast_selector).forEach(elm => {
+        document.querySelectorAll(c.cast_selector).forEach(elm => { try {
             let [ gid, sid ] = c.get_ids(elm)
             sid ||= common_sid ||= function() {
                 for (const s of document.querySelectorAll('script')) {
@@ -104,7 +104,7 @@
                     const show_elm = elm.querySelector(c.show_selector)
                     show_elm.innerHTML = c.modify_html(show_elm.innerHTML, fav.cnt)
                 })
-        })
+        } catch {} })
         break
     }
 })();
