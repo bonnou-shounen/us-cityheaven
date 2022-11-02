@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        cityheaven-plus
 // @description add convinient elements
-// @version     0.0.11
+// @version     0.0.12
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -11,6 +11,12 @@
     // オフィシャルフラグを削除する
     if (location.search.match(/\bof=[^&]*\b/)) {
         location.search = location.search.replace(/\bof=[^&]*\b/, '')
+        return
+    }
+
+    // キャストページはPC用に強制する
+    if (location.pathname.match(/girlid-/) && location.search.match(/\bpcmode=sp\b/)) {
+        location.search = location.search.replace(/\bpcmode=sp\b/, '')
         return
     }
 
@@ -39,7 +45,11 @@
         div_myg.parentNode.insertBefore(div, div_myg.nextSibling)
     }
 
-    // いろいろな画面でお気に入り数を表示する
+    // 2022-11-03 Chromeで「予約する」が表示されない?
+    const b = document.querySelector('#reserve_btn')
+    if (b) { b.style.visibility = 'visible' }
+
+    // いろいろな画面で[お気に入り数/世代]を表示する(世代はgirlidの上2桁)
     const configs = [
         {
             path: '/girllist/', // /girllist/attend/ も扱う
@@ -49,7 +59,7 @@
                 return [ m[1] ]
             },
             show_selector: 'div.girllisttext',
-            modify_html: (html, count) => { return html.replace('<br>', ` [${count}]<br>`) }
+            modify_html: (html, count, gen) => { return html.replace('<br>', ` [${count}/${gen}]<br>`) }
         },
         {
             path: '/attend/',
@@ -59,7 +69,7 @@
                 return [ m[1] ]
             },
             show_selector: 'p.year_font_size',
-            modify_html: (html, count) => { return `${html} [${count}]` }
+            modify_html: (html, count, gen) => { return `${html} [${count}/${gen}]` }
         },
         {
             path: '/ABMyAlbumShukkin/',
@@ -69,8 +79,8 @@
                 return [ m[2], m[1] ]
             },
             show_selector: 'h3.recommend-block-top-name',
-            modify_html: (html, count) => { return `
-                ${html}<span style="font-size: 13px; font-weight: normal;">[${count}]</span>
+            modify_html: (html, count, gen) => { return `
+                ${html}<span style="font-size: 13px; font-weight: normal;">[${count}/${gen}]</span>
             `}
         },
         {
@@ -81,7 +91,7 @@
                 return [ m[1] ]
             },
             show_selector: 'td',
-            modify_html: (html, count) => { return html.replace('〕', `〕[${count}]`) }
+            modify_html: (html, count, gen) => { return html.replace('〕', `〕[${count}/${gen}]`) }
         }
     ]
 
@@ -102,7 +112,7 @@
             fetch(`https://www.cityheaven.net/api/myheaven/v1/getgirlfavcnt/?girl_id=${gid}&commu_id=${sid}`)
                 .then(res => res.json()).then(fav => {
                     const show_elm = elm.querySelector(c.show_selector)
-                    show_elm.innerHTML = c.modify_html(show_elm.innerHTML, fav.cnt)
+                    show_elm.innerHTML = c.modify_html(show_elm.innerHTML, fav.cnt, gid.slice(0, 2))
                 })
         } catch {} })
         break
