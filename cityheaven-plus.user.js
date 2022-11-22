@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        cityheaven-plus
 // @description add convinient elements
-// @version     0.0.12
+// @version     0.0.13
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -45,10 +45,6 @@
         div_myg.parentNode.insertBefore(div, div_myg.nextSibling)
     }
 
-    // 2022-11-03 Chromeで「予約する」が表示されない?
-    const b = document.querySelector('#reserve_btn')
-    if (b) { b.style.visibility = 'visible' }
-
     // いろいろな画面で[お気に入り数/世代]を表示する(世代はgirlidの上2桁)
     const configs = [
         {
@@ -82,6 +78,17 @@
             modify_html: (html, count, gen) => { return `
                 ${html}<span style="font-size: 13px; font-weight: normal;">[${count}/${gen}]</span>
             `}
+        },
+        {
+            path: '/ABFavoriteGirlList/',
+            cast_selector: 'div.kuchikomi_count_area',
+            get_ids: div => {
+                return ["girl", "commu"].map(name => {
+                    return div.querySelector(`input[name="${name}"]`).getAttribute("value")
+                })
+            },
+            show_selector: 'span.girl_favorite_count',
+            modify_html: (html, count, gen) => { return `${count}/${gen}` }
         },
         {
             path: '/girlid-',
