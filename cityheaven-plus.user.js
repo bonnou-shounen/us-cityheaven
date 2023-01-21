@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        cityheaven-plus
 // @description add convinient elements
-// @version     0.0.13
+// @version     0.0.14
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -43,6 +43,14 @@
             ・<a href="/mypage/comeonlist/?spmode=pc" target="_blank">キテネ</a>
         `
         div_myg.parentNode.insertBefore(div, div_myg.nextSibling)
+    }
+
+    // マイガールの「人気・話題」コーナーを途中から最後に移動
+    const sec_pgb = document.querySelector('section#popular-girl-banner')
+    if (sec_pgb) {
+        const div_cb = document.querySelector('div.contents-block')
+        const div_pg = document.querySelector('div.paging')
+        div_cb.insertBefore(sec_pgb, div_pg.nextElementSibling)
     }
 
     // いろいろな画面で[お気に入り数/世代]を表示する(世代はgirlidの上2桁)
