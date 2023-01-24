@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        cityheaven-plus
 // @description add convinient elements
-// @version     0.0.14
+// @version     0.0.15
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -49,7 +49,7 @@
     const sec_pgb = document.querySelector('section#popular-girl-banner')
     if (sec_pgb) {
         const div_cb = document.querySelector('div.contents-block')
-        const div_pg = document.querySelector('div.paging')
+        const div_pg = document.querySelector('.paging')
         div_cb.insertBefore(sec_pgb, div_pg.nextElementSibling)
     }
 
