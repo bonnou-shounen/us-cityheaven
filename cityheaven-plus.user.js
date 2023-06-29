@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        cityheaven-plus
 // @description add convinient elements
-// @version     0.0.15
+// @version     0.0.16
 // @match       https://www.cityheaven.net/*
 // ==/UserScript==
 
@@ -43,6 +43,11 @@
             ・<a href="/mypage/comeonlist/?spmode=pc" target="_blank">キテネ</a>
         `
         div_myg.parentNode.insertBefore(div, div_myg.nextSibling)
+    }
+
+    // マイガールへのリンクのソート順は標準のままに(旧仕様に戻す)
+    for (const a_myg of document.querySelectorAll('a[href*="sort="]')) {
+        a_myg.setAttribute('href', a_myg.href.replace('?sort=update', '?').replace('&sort=update', ''))
     }
 
     // マイガールの「人気・話題」コーナーを途中から最後に移動
